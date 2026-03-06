@@ -1,0 +1,16 @@
+[project]
+name = "realtime-anomaly-detection"
+version = "0.1.0"
+description = "Real-Time Anomaly Detection on Time-Series Streams"
+requires-python = ">=3.10"
+dependencies = [
+    "river>=0.21.0",
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "websockets>=12.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]

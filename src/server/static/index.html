@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Real-Time Anomaly Detection</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background: #1a1a2e; color: #eee; }
+    h1 { margin: 0 0 1rem 0; font-size: 1.5rem; }
+    .counters { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .counter { background: #16213e; padding: 0.75rem 1.25rem; border-radius: 8px; min-width: 140px; }
+    .counter label { display: block; font-size: 0.75rem; opacity: 0.8; text-transform: uppercase; }
+    .counter .value { font-size: 1.5rem; font-weight: 600; }
+    .chart-wrap { position: relative; height: 360px; background: #16213e; border-radius: 8px; padding: 1rem; }
+    #status { margin-bottom: 0.5rem; font-size: 0.9rem; }
+    #status.connected { color: #4ade80; }
+    #status.disconnected { color: #f87171; }
+  </style>
+</head>
+<body>
+  <h1>Real-Time Anomaly Detection</h1>
+  <div id="status" class="disconnected">Disconnected</div>
+  <div class="counters">
+    <div class="counter"><label>Total anomalies</label><span class="value" id="total-anomalies">0</span></div>
+    <div class="counter"><label>Drift events</label><span class="value" id="total-drift">0</span></div>
+    <div class="counter"><label>Precision</label><span class="value" id="precision">0.00</span></div>
+    <div class="counter"><label>Recall</label><span class="value" id="recall">0.00</span></div>
+  </div>
+  <div class="chart-wrap">
+    <canvas id="chart"></canvas>
+  </div>
+  <script src="/static/dashboard.js"></script>
+</body>
+</html>
