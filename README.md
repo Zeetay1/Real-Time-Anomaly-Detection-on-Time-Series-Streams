@@ -34,6 +34,21 @@ python run.py
 
 Open **http://localhost:8000/** (or http://127.0.0.1:8000/). The pipeline starts when the first client connects. The stream loops; metrics reset each cycle.
 
+## Deploy on Fly.io
+
+One-time setup, then push to deploy:
+
+```bash
+# Install flyctl: https://fly.io/docs/hands-on/install-flyctl/
+fly auth login
+fly launch --no-deploy   # create app (accept defaults or set app name)
+fly deploy               # build image and deploy
+```
+
+Your app will be at **https://&lt;app-name&gt;.fly.dev**. WebSockets and the dashboard work the same as locally. The repo includes a `Dockerfile` and `fly.toml`; the app reads `PORT` from the environment (Fly sets 8080).
+
+**Optional:** Run the same image locally with Docker: `docker build -t anomaly . && docker run -p 8000:8000 -e PORT=8000 anomaly`
+
 ## Tests
 
 ```bash
