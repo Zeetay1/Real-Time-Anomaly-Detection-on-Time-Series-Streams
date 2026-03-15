@@ -71,5 +71,7 @@ async def run_pipeline(
             running_recall=metrics.recall,
             observation_index=observation_index,
         )
+        msg["total_anomalies_detected"] = state["total_anomalies_detected"] if state else 0
+        msg["total_drift_events"] = state["total_drift_events"] if state else 0
         await broadcaster(msg)
         observation_index += 1

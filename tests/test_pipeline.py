@@ -22,6 +22,8 @@ BROADCAST_KEYS = {
     "running_precision",
     "running_recall",
     "observation_index",
+    "total_anomalies_detected",
+    "total_drift_events",
 }
 
 
@@ -94,6 +96,8 @@ async def test_broadcast_message_schema():
         assert isinstance(msg["running_precision"], (int, float))
         assert isinstance(msg["running_recall"], (int, float))
         assert isinstance(msg["observation_index"], int)
+        assert isinstance(msg["total_anomalies_detected"], int)
+        assert isinstance(msg["total_drift_events"], int)
         assert 0 <= msg["anomaly_score"] <= 1
 
 

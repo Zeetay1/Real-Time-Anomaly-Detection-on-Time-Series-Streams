@@ -9,8 +9,6 @@
   const recallEl = document.getElementById('recall');
   const canvas = document.getElementById('chart');
 
-  let totalAnomalies = 0;
-  let totalDrift = 0;
   const buffer = [];
 
   function setConnected(ok) {
@@ -19,10 +17,8 @@
   }
 
   function updateCounters(msg) {
-    totalAnomalies += msg.alert ? 1 : 0;
-    if (msg.drift_event) totalDrift += 1;
-    totalAnomaliesEl.textContent = totalAnomalies;
-    totalDriftEl.textContent = totalDrift;
+    if (msg.total_anomalies_detected != null) totalAnomaliesEl.textContent = msg.total_anomalies_detected;
+    if (msg.total_drift_events != null) totalDriftEl.textContent = msg.total_drift_events;
     precisionEl.textContent = (msg.running_precision ?? 0).toFixed(2);
     recallEl.textContent = (msg.running_recall ?? 0).toFixed(2);
   }
@@ -30,23 +26,26 @@
   const driftPlugin = {
     id: 'driftLines',
     afterDraw: function (chart) {
+      if (!chart.chartArea) return;
       const driftIndices = buffer.filter(function (p) { return p.drift_event; }).map(function (p) { return p.index; });
       if (driftIndices.length === 0) return;
-      const meta = chart.getDatasetMeta(0);
-      if (!meta || !meta.data.length) return;
-      const xScale = chart.scales.x;
-      const yScale = chart.scales.y;
+      const xScale = chart.scales && chart.scales.x;
+      if (!xScale) return;
       const ctx = chart.ctx;
+      const left = chart.chartArea.left;
+      const right = chart.chartArea.right;
+      const top = chart.chartArea.top;
+      const bottom = chart.chartArea.bottom;
       ctx.save();
       ctx.setLineDash([4, 4]);
       ctx.strokeStyle = '#fbbf24';
       ctx.lineWidth = 1.5;
       driftIndices.forEach(function (idx) {
         const x = xScale.getPixelForValue(idx);
-        if (x >= chart.chartArea.left && x <= chart.chartArea.right) {
+        if (x >= left && x <= right) {
           ctx.beginPath();
-          ctx.moveTo(x, chart.chartArea.top);
-          ctx.lineTo(x, chart.chartArea.bottom);
+          ctx.moveTo(x, top);
+          ctx.lineTo(x, bottom);
           ctx.stroke();
         }
       });
@@ -125,6 +124,19 @@
       } catch (e) { /* ignore */ }
     };
   }
+
+  (function initWhatSection() {
+    var toggle = document.getElementById('what-toggle');
+    var body = document.getElementById('what-body');
+    if (!toggle || !body) return;
+    toggle.addEventListener('click', function () {
+      var isHidden = body.style.display === 'none';
+      body.style.display = isHidden ? 'block' : 'none';
+      toggle.textContent = isHidden ? 'What you\'re seeing ▲' : 'What you\'re seeing ▼';
+    });
+    body.style.display = 'none';
+    toggle.textContent = 'What you\'re seeing ▼';
+  })();
 
   connect();
 })();
