@@ -38,7 +38,7 @@
       const bottom = chart.chartArea.bottom;
       ctx.save();
       ctx.setLineDash([4, 4]);
-      ctx.strokeStyle = '#fbbf24';
+      ctx.strokeStyle = '#eab308';
       ctx.lineWidth = 1.5;
       driftIndices.forEach(function (idx) {
         const x = xScale.getPixelForValue(idx);
@@ -53,15 +53,16 @@
     }
   };
 
+  const chartColors = { temp: '#38bdf8', pressure: '#a78bfa', vibe: '#34d399', danger: '#ef4444' };
   const ctx = canvas.getContext('2d');
   const chart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: [],
       datasets: [
-        { label: 'Temperature', data: [], borderColor: '#60a5fa', backgroundColor: 'transparent', fill: false, tension: 0.1, pointRadius: 0 },
-        { label: 'Pressure', data: [], borderColor: '#a78bfa', backgroundColor: 'transparent', fill: false, tension: 0.1, pointRadius: 0 },
-        { label: 'Vibration', data: [], borderColor: '#34d399', backgroundColor: 'transparent', fill: false, tension: 0.1, pointRadius: 0 }
+        { label: 'Temperature', data: [], borderColor: chartColors.temp, backgroundColor: 'transparent', fill: false, tension: 0.15, pointRadius: 0, borderWidth: 2 },
+        { label: 'Pressure', data: [], borderColor: chartColors.pressure, backgroundColor: 'transparent', fill: false, tension: 0.15, pointRadius: 0, borderWidth: 2 },
+        { label: 'Vibration', data: [], borderColor: chartColors.vibe, backgroundColor: 'transparent', fill: false, tension: 0.15, pointRadius: 0, borderWidth: 2 }
       ]
     },
     options: {
@@ -69,11 +70,23 @@
       maintainAspectRatio: false,
       interaction: { intersect: false, mode: 'index' },
       scales: {
-        x: { display: true, title: { display: true, text: 'Observation index' } },
-        y: { display: true }
+        x: {
+          display: true,
+          title: { display: true, text: 'Observation index', color: '#a1a1aa', font: { family: "'DM Sans', system-ui", size: 12 } },
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          ticks: { color: '#71717a', maxTicksLimit: 12 }
+        },
+        y: {
+          display: true,
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          ticks: { color: '#71717a' }
+        }
       },
       plugins: {
-        legend: { position: 'top' }
+        legend: {
+          position: 'top',
+          labels: { color: '#a1a1aa', font: { family: "'DM Sans', system-ui", size: 12 }, usePointStyle: true, padding: 16 }
+        }
       }
     },
     plugins: [driftPlugin]
@@ -99,11 +112,11 @@
     chart.data.datasets[1].data = buffer.map(function (p) { return p.pressure; });
     chart.data.datasets[2].data = buffer.map(function (p) { return p.vibration; });
     chart.data.datasets[0].pointRadius = buffer.map(function (p) { return p.alert ? 6 : 0; });
-    chart.data.datasets[0].pointBackgroundColor = buffer.map(function (p) { return p.alert ? '#ef4444' : 'transparent'; });
+    chart.data.datasets[0].pointBackgroundColor = buffer.map(function (p) { return p.alert ? chartColors.danger : 'transparent'; });
     chart.data.datasets[1].pointRadius = buffer.map(function (p) { return p.alert ? 6 : 0; });
-    chart.data.datasets[1].pointBackgroundColor = buffer.map(function (p) { return p.alert ? '#ef4444' : 'transparent'; });
+    chart.data.datasets[1].pointBackgroundColor = buffer.map(function (p) { return p.alert ? chartColors.danger : 'transparent'; });
     chart.data.datasets[2].pointRadius = buffer.map(function (p) { return p.alert ? 6 : 0; });
-    chart.data.datasets[2].pointBackgroundColor = buffer.map(function (p) { return p.alert ? '#ef4444' : 'transparent'; });
+    chart.data.datasets[2].pointBackgroundColor = buffer.map(function (p) { return p.alert ? chartColors.danger : 'transparent'; });
     chart.update('none');
   }
 
@@ -126,16 +139,12 @@
   }
 
   (function initWhatSection() {
+    var section = document.getElementById('what-section');
     var toggle = document.getElementById('what-toggle');
-    var body = document.getElementById('what-body');
-    if (!toggle || !body) return;
+    if (!section || !toggle) return;
     toggle.addEventListener('click', function () {
-      var isHidden = body.style.display === 'none';
-      body.style.display = isHidden ? 'block' : 'none';
-      toggle.textContent = isHidden ? 'What you\'re seeing ▲' : 'What you\'re seeing ▼';
+      section.classList.toggle('open');
     });
-    body.style.display = 'none';
-    toggle.textContent = 'What you\'re seeing ▼';
   })();
 
   connect();

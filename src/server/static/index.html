@@ -4,51 +4,224 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Real-Time Anomaly Detection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
+    :root {
+      --bg: #0c0c0f;
+      --surface: #141419;
+      --surface-elevated: #1a1a21;
+      --border: rgba(255, 255, 255, 0.06);
+      --text: #e4e4e7;
+      --text-muted: #a1a1aa;
+      --accent: #22c55e;
+      --accent-dim: rgba(34, 197, 94, 0.15);
+      --danger: #ef4444;
+      --danger-dim: rgba(239, 68, 68, 0.12);
+      --warn: #eab308;
+      --warn-dim: rgba(234, 179, 8, 0.12);
+      --chart-temp: #38bdf8;
+      --chart-pressure: #a78bfa;
+      --chart-vibe: #34d399;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
     * { box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background: #1a1a2e; color: #eee; max-width: 960px; margin-left: auto; margin-right: auto; }
-    h1 { margin: 0 0 0.25rem 0; font-size: 1.5rem; }
-    .intro { font-size: 0.9rem; opacity: 0.9; margin-bottom: 1rem; line-height: 1.4; }
-    .counters { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .counter { background: #16213e; padding: 0.75rem 1rem; border-radius: 8px; min-width: 130px; cursor: help; }
-    .counter label { display: block; font-size: 0.7rem; opacity: 0.85; text-transform: uppercase; margin-bottom: 0.2rem; }
-    .counter .value { font-size: 1.4rem; font-weight: 600; }
-    .chart-wrap { position: relative; height: 360px; background: #16213e; border-radius: 8px; padding: 1rem; margin-bottom: 0.5rem; }
-    .chart-caption { font-size: 0.8rem; opacity: 0.85; margin-bottom: 1rem; }
-    #status { margin-bottom: 0.5rem; font-size: 0.9rem; }
-    #status.connected { color: #4ade80; }
-    #status.disconnected { color: #f87171; }
-    .what-section { margin-top: 1.5rem; border: 1px solid #2a2a4e; border-radius: 8px; overflow: hidden; }
-    .what-header { padding: 0.6rem 1rem; background: #16213e; cursor: pointer; font-weight: 600; font-size: 0.95rem; user-select: none; }
-    .what-header:hover { background: #1e2a4a; }
-    .what-body { padding: 1rem; font-size: 0.9rem; line-height: 1.5; }
-    .what-body ul { margin: 0.5rem 0 0 1rem; padding: 0; }
-    .what-body li { margin-bottom: 0.4rem; }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    .layout {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    header {
+      margin-bottom: 1.75rem;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.35rem 0;
+      color: var(--text);
+    }
+    .intro {
+      font-size: 0.9375rem;
+      color: var(--text-muted);
+      margin: 0;
+      max-width: 56ch;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    #status {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    #status::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    #status.connected {
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+    #status.disconnected {
+      color: var(--danger);
+      background: var(--danger-dim);
+    }
+
+    .counters {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 640px) {
+      .counters { grid-template-columns: repeat(2, 1fr); }
+    }
+    .counter {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      cursor: help;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .counter:hover {
+      background: var(--surface-elevated);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+    .counter label {
+      display: block;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+    .counter .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    .chart-wrap {
+      position: relative;
+      height: 380px;
+    }
+    .chart-caption {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      margin: 0 0 1.5rem 0;
+    }
+    .chart-caption span { font-weight: 500; }
+
+    .what-section {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .what-header {
+      padding: 0.875rem 1.25rem;
+      font-weight: 600;
+      font-size: 0.9375rem;
+      cursor: pointer;
+      user-select: none;
+      color: var(--text);
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .what-header:hover {
+      background: var(--surface-elevated);
+    }
+    .what-header .chevron {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      transition: transform 0.2s;
+    }
+    .what-section.open .what-header .chevron { transform: rotate(180deg); }
+    .what-body {
+      display: none;
+      padding: 0 1.25rem 1.25rem;
+      font-size: 0.9375rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .what-section.open .what-body { display: block; }
+    .what-body ul {
+      margin: 0;
+      padding-left: 1.25rem;
+    }
+    .what-body li { margin-bottom: 0.5rem; }
+    .what-body strong { color: var(--text); }
   </style>
 </head>
 <body>
-  <h1>Real-Time Anomaly Detection</h1>
-  <p class="intro">Live sensor stream (temperature, pressure, vibration) with online anomaly detection. The model updates with every observation and resets when the distribution shifts (concept drift).</p>
-  <div id="status" class="disconnected">Disconnected</div>
-  <div class="counters">
-    <div class="counter" title="Number of times the score exceeded the threshold (alert)."><label>Anomalies detected</label><span class="value" id="total-anomalies">0</span></div>
-    <div class="counter" title="Times the model detected a distribution shift and reset."><label>Drift events</label><span class="value" id="total-drift">0</span></div>
-    <div class="counter" title="Of all alerts, how many were true anomalies (vs ground truth)."><label>Precision</label><span class="value" id="precision">0.00</span></div>
-    <div class="counter" title="Of all true anomalies, how many were detected."><label>Recall</label><span class="value" id="recall">0.00</span></div>
-  </div>
-  <div class="chart-wrap">
-    <canvas id="chart"></canvas>
-  </div>
-  <p class="chart-caption">Last 200 observations. <span style="color:#ef4444">Red dots</span> = anomaly alerts; <span style="color:#fbbf24">yellow vertical lines</span> = drift (model reset).</p>
-  <div class="what-section">
-    <div class="what-header" id="what-toggle">What you're seeing ▼</div>
-    <div class="what-body" id="what-body">
-      <ul>
-        <li><strong>Synthetic stream:</strong> Three phases — normal baseline, gradual concept drift, then injected anomalies (spikes and contextual outliers). The stream loops; each cycle takes ~40s.</li>
-        <li><strong>Online learning:</strong> The detector updates with every observation; no batch retraining. When drift is detected on the anomaly score stream, the model resets to adapt.</li>
-        <li><strong>Metrics:</strong> Precision and recall are computed in real time against ground truth labels. All counters reset at the start of each stream cycle so the dashboard reflects the current run.</li>
-      </ul>
+  <div class="layout">
+    <header>
+      <h1>Real-Time Anomaly Detection</h1>
+      <p class="intro">Live sensor stream (temperature, pressure, vibration) with online anomaly detection. The model updates with every observation and resets when the distribution shifts (concept drift).</p>
+    </header>
+    <div class="status-row">
+      <div id="status" class="disconnected">Disconnected</div>
+    </div>
+    <div class="counters">
+      <div class="counter" title="Number of times the score exceeded the threshold (alert)."><label>Anomalies detected</label><span class="value" id="total-anomalies">0</span></div>
+      <div class="counter" title="Times the model detected a distribution shift and reset."><label>Drift events</label><span class="value" id="total-drift">0</span></div>
+      <div class="counter" title="Of all alerts, how many were true anomalies (vs ground truth)."><label>Precision</label><span class="value" id="precision">0.00</span></div>
+      <div class="counter" title="Of all true anomalies, how many were detected."><label>Recall</label><span class="value" id="recall">0.00</span></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-wrap">
+        <canvas id="chart"></canvas>
+      </div>
+    </div>
+    <p class="chart-caption">Last 200 observations. <span style="color:var(--danger)">Red dots</span> = anomaly alerts; <span style="color:var(--warn)">yellow vertical lines</span> = drift (model reset).</p>
+    <div class="what-section" id="what-section">
+      <div class="what-header" id="what-toggle">What you're seeing <span class="chevron">▼</span></div>
+      <div class="what-body" id="what-body">
+        <ul>
+          <li><strong>Synthetic stream:</strong> Three phases — normal baseline, gradual concept drift, then injected anomalies (spikes and contextual outliers). The stream loops; each cycle takes ~40s.</li>
+          <li><strong>Online learning:</strong> The detector updates with every observation; no batch retraining. When drift is detected on the anomaly score stream, the model resets to adapt.</li>
+          <li><strong>Metrics:</strong> Precision and recall are computed in real time against ground truth labels. All counters reset at the start of each stream cycle so the dashboard reflects the current run.</li>
+        </ul>
+      </div>
     </div>
   </div>
   <script src="/static/dashboard.js"></script>
